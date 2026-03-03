@@ -15,6 +15,7 @@ import tech.rafael.orderms.repository.OrderRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.match;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
@@ -51,7 +52,7 @@ public class OrderService {
         );
 
         var response = mongoTemplate.aggregate(aggregations, "tb_orders", Document.class);
-        return new BigDecimal(response.getUniqueMappedResult().getOrDefault("total", BigDecimal.ZERO).toString());
+        return new BigDecimal(Objects.requireNonNull(response.getUniqueMappedResult()).getOrDefault("total", BigDecimal.ZERO).toString());
     }
 
     private static List<OrderItem> getOrderItems(OrderCreatedEvent event) {
