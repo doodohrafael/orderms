@@ -23,6 +23,8 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.newA
 @Service
 public class OrderService {
 
+    private static final String TOTAL = "total";
+
     private final OrderRepository repository;
     private final MongoTemplate mongoTemplate;
 
@@ -48,11 +50,11 @@ public class OrderService {
     public BigDecimal findTotalOnOrdersByCustomerId(Long customerId) {
         var aggregations = newAggregation(
                 match(Criteria.where("customerId").is(customerId)),
-                Aggregation.group().sum("total").as("total")
+                Aggregation.group().sum(TOTAL).as(TOTAL)
         );
 
         var response = mongoTemplate.aggregate(aggregations, "tb_orders", Document.class);
-        return new BigDecimal(Objects.requireNonNull(response.getUniqueMappedResult()).getOrDefault("total", BigDecimal.ZERO).toString());
+        return new BigDecimal(Objects.requireNonNull(response.getUniqueMappedResult()).getOrDefault(TOTAL, BigDecimal.ZERO).toString());
     }
 
     private static List<OrderItem> getOrderItems(OrderCreatedEvent event) {
