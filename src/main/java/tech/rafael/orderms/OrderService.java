@@ -1,6 +1,9 @@
 package tech.rafael.orderms;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import tech.rafael.orderms.controller.dto.OrderResponse;
 import tech.rafael.orderms.entity.OrderEntity;
 import tech.rafael.orderms.entity.OrderItem;
 import tech.rafael.orderms.listener.dto.OrderCreatedEvent;
@@ -27,6 +30,16 @@ public class OrderService {
         this.repository.save(entity);
     }
 
+    public Page<OrderResponse> findAllByCustomerId(Long customerId, PageRequest pageRequest) {
+        var orders = this.repository.findAllByCustomerId(customerId, pageRequest);
+        return orders.map(OrderResponse::fromEntity);
+    }
+
+    private static List<OrderItem> getOrderItems(OrderCreatedEvent event) {
+        return event.items().stream().map(item ->
+                new OrderItem(item.product(), item.quantity(), item.price())).toList();
+    }
+
     private BigDecimal getTotal(OrderCreatedEvent event) {
         return event.items().stream()
                 .map(item -> (BigDecimal.valueOf(item.quantity()).multiply(item.price())))
@@ -34,8 +47,4 @@ public class OrderService {
                 .orElse(BigDecimal.ZERO);
     }
 
-    private static List<OrderItem> getOrderItems(OrderCreatedEvent event) {
-        return event.items().stream().map(item ->
-                new OrderItem(item.product(), item.quantity(), item.price())).toList();
-    }
 }
